@@ -158,7 +158,7 @@
             mix-blend-mode: multiply; 
             transition: transform 0.1s ease;
             transform-origin: center center;
-            pointer-events: none; /* 꾹 누르기 이벤트가 컨테이너에서 처리되도록 방해 방지 */
+            pointer-events: none; /* 꾹 누르기 이벤트 방해 방지 */
         }
     </style>
 </head>
@@ -425,26 +425,31 @@
         <div id="cardEditOverlay" class="absolute inset-0 bg-black/80 z-[9999999] hidden flex-col items-center justify-center gap-3 backdrop-blur-sm px-6">
             <h3 class="text-white font-bold mb-3 text-xl">사진 편집</h3>
             
-            <button class="bg-blue-500 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg" onclick="selectEditAction('change')">🖼️ 새로운 사진 등록</button>
-            
-            <!-- 크기 자유 조절 슬라이더 -->
-            <div class="w-full max-w-[280px] bg-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-slate-600 shadow-lg mt-2">
-                <label class="text-white font-bold text-sm">🔍 사진 크기 조절</label>
-                <input type="range" id="sizeSlider" min="0.5" max="2.5" step="0.05" value="1.0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer" oninput="previewSizeAndPos()" onchange="applySizeAndPos()">
-                <span id="sizeValueText" class="text-emerald-400 text-sm font-bold">100%</span>
+            <div id="loadingText" class="hidden text-emerald-400 font-bold text-lg text-center my-4 animate-pulse">
+                사진을 저장하는 중입니다...<br>잠시만 기다려주세요 ⏳
             </div>
 
-            <!-- 위아래 위치 조절 슬라이더 -->
-            <div class="w-full max-w-[280px] bg-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-slate-600 shadow-lg">
-                <label class="text-white font-bold text-sm">↕️ 사진 상하 위치 조절</label>
-                <input type="range" id="ySlider" min="-150" max="150" step="5" value="0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer" oninput="previewSizeAndPos()" onchange="applySizeAndPos()">
-                <span id="yValueText" class="text-emerald-400 text-sm font-bold">0px</span>
-            </div>
+            <div id="editMenuButtons" class="w-full flex flex-col items-center gap-3">
+                <button class="bg-blue-500 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg" onclick="selectEditAction('change')">🖼️ 새로운 사진 등록</button>
+                
+                <!-- 크기 자유 조절 슬라이더 -->
+                <div class="w-full max-w-[280px] bg-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-slate-600 shadow-lg mt-2">
+                    <label class="text-white font-bold text-sm">🔍 사진 크기 조절</label>
+                    <input type="range" id="sizeSlider" min="0.5" max="2.5" step="0.05" value="1.0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer" oninput="previewSizeAndPos()" onchange="applySizeAndPos()">
+                    <span id="sizeValueText" class="text-emerald-400 text-sm font-bold">100%</span>
+                </div>
 
-            <button class="bg-red-500 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg mt-2" onclick="selectEditAction('delete')">🗑️ 사진 삭제</button>
-            
-            <button class="bg-gray-600 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all mt-2" onclick="closeEditMenu()">닫기</button>
-            
+                <!-- 위아래 위치 조절 슬라이더 -->
+                <div class="w-full max-w-[280px] bg-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-slate-600 shadow-lg">
+                    <label class="text-white font-bold text-sm">↕️ 사진 상하 위치 조절</label>
+                    <input type="range" id="ySlider" min="-150" max="150" step="5" value="0" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer" oninput="previewSizeAndPos()" onchange="applySizeAndPos()">
+                    <span id="yValueText" class="text-emerald-400 text-sm font-bold">0px</span>
+                </div>
+
+                <button class="bg-red-500 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg mt-2" onclick="selectEditAction('delete')">🗑️ 사진 삭제</button>
+                
+                <button class="bg-gray-600 text-white w-full max-w-[280px] py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-all mt-2" onclick="closeEditMenu()">닫기</button>
+            </div>
             <input type="file" id="sharedCardFileInput" accept="image/*" class="hidden">
         </div>
 
@@ -522,7 +527,7 @@
         // ==========================================
         // 1~3페이지(탄소측정기) 원본 스크립트 
         // ==========================================
-        const OPENAI_API_KEY = ";
+        const OPENAI_API_KEY = "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";
         let capturedPhotos = [];
         let stream = null;
         const maxPhotos = 2;
@@ -542,6 +547,24 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+                };
+                img.src = imgSrc;
+            });
+        }
+
+        // Firebase 업로드용 강력 압축 리사이징 (1MB 용량초과 방지용)
+        function resizeImageForFirebase(imgSrc) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 450; 
+                    let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.65)); 
                 };
                 img.src = imgSrc;
             });
@@ -875,7 +898,7 @@
             }, 800);
         }
         
-        // 터치가 취소되거나 이동(스크롤) 시 타이머 취소
+        // 터치가 취소되거나 이동(스크롤) 시 타이머 취소 방지
         function cancelTouch() {
             if(touchTimer) clearTimeout(touchTimer);
         }
@@ -938,17 +961,30 @@
             }
         }
 
+        // ⚠️ 사진 첨부 시 1MB 용량 방지 및 로딩 팝업 표시 로직
         document.getElementById('sharedCardFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(!file || !currentEditCard) return;
+
+            // 로딩 UI 노출
+            document.getElementById('editMenuButtons').style.display = 'none';
+            document.getElementById('loadingText').style.display = 'block';
+
             const reader = new FileReader();
-            reader.onload = async function(e) {
-                const resizedBase64 = await resizeImage(e.target.result);
+            reader.onload = async function(event) {
+                const resizedBase64 = await resizeImageForFirebase(event.target.result); // 강력 압축
                 if(window.saveCardData) {
-                    window.saveCardData(currentEditCard, resizedBase64, 1.0, 0);
-                    alert("사진이 성공적으로 업데이트되었습니다! (모든 사람에게 공유됨)");
+                    const isSuccess = await window.saveCardData(currentEditCard, resizedBase64, 1.0, 0);
+                    if(isSuccess) {
+                        alert("사진이 성공적으로 업데이트되었습니다! 🐻‍❄️\n(모든 사람에게 공유됨)");
+                    }
                 }
+                
+                // UI 원상복구 및 초기화
                 closeEditMenu();
+                document.getElementById('editMenuButtons').style.display = 'flex';
+                document.getElementById('loadingText').style.display = 'none';
+                e.target.value = ''; 
             };
             reader.readAsDataURL(file);
         });
@@ -1005,7 +1041,7 @@
             }
         });
 
-        // 위치값(yPos) 추가 저장
+        // ⚠️ 에러 알림 추가: 권한 문제나 용량 문제 시 즉각 파악 가능
         window.saveCardData = async (index, imgData, scale, yPos) => {
             try {
                 const updateObj = {};
@@ -1014,9 +1050,11 @@
                 if(yPos !== null) updateObj['card'+index+'_y'] = yPos;
                 
                 await setDoc(cardsDocRef, updateObj, { merge: true });
+                return true;
             } catch (error) {
                 console.error("Firebase 저장 오류:", error);
-                alert("저장 중 오류가 발생했습니다.");
+                alert("⚠️ 저장 실패: 파이어베이스 권한 설정(Test Mode)이 막혀있거나 용량이 초과되었습니다.\n\n" + error.message);
+                return false;
             }
         };
     </script>
