@@ -1,0 +1,40 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"] # 만약 기본 브랜치 이름이 master라면 "master"로 변경하세요.
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: HTML 파일에 API 키 주입하기 (글자 바꿔치기)
+        run: |
+          sed -i 's/\${{ secrets.OPENAI_API_KEY }}/'"${OPENAI_API_KEY}"'/g' index.html
+          sed -i 's/\${{ secrets.TOGETHER_API_KEY }}/'"${TOGETHER_API_KEY}"'/g' index.html
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+
+      - name: GitHub Pages 설정
+        uses: actions/configure-pages@v4
+
+      - name: 아티팩트(결과물) 업로드
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: GitHub Pages에 배포 완료!
+        id: deployment
+        uses: actions/deploy-pages@v4
