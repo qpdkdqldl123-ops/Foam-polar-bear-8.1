@@ -124,7 +124,6 @@
 
         #page4EndTrigger { position: absolute; inset: 0; z-index: 50; display: none; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 60px; background: transparent; cursor: pointer; }
         
-        /* 팝업 오버레이 배경 속성 변경 */
         #page4AppPopup { position: absolute; inset: 0; z-index: 60; display: none; justify-content: center; cursor: pointer; }
         @keyframes bgFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
 
@@ -241,6 +240,8 @@
                             <span id="mergeCarbonText" class="text-3xl font-bold text-[#3182F6]">0.0</span>
                             <span class="text-sm font-semibold text-[#8B95A1] ml-1">g</span>
                         </div>
+                        <div id="carEquivalent" class="text-[11px] font-semibold text-[#8B95A1] bg-[#F2F4F6] px-2 py-1 mt-1 rounded-md opacity-0 transition-opacity whitespace-nowrap">🚗 자동차 0.0km 동급</div>
+                        <div id="carStandardText" class="text-[9px] text-[#8B95A1] mt-1 opacity-0 transition-opacity whitespace-nowrap">(승용차 1km당 130g 배출 기준)</div>
                     </div>
                 </div>
             </div>
@@ -335,8 +336,9 @@
     <div id="page5" class="page-container hidden w-full min-h-[100dvh] bg-[#F3F4F6] text-[#191F28] flex-col justify-center items-center py-4 relative">
         <div class="mobile-frame pt-16">
             
-            <div class="w-full px-4 flex justify-center items-center shrink-0">
+            <div class="w-full px-4 flex flex-col justify-center items-center shrink-0">
                 <img src="앱.jpeg" alt="앱" class="w-full max-w-[130px] object-contain mix-blend-multiply rounded-[18px]">
+                <p class="mt-2 text-[#191F28] text-[20px] font-bold tracking-wide">Don't cry bear</p>
             </div>
 
             <div class="social-links my-4 scale-90">
@@ -550,7 +552,7 @@
 
 
         // ==========================================
-        // 1~3페이지(탄소측정기) 원본 스크립트 
+        // 1~3페이지(탄소측정기) 메인 스크립트 
         // ==========================================
         
         const OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";
@@ -694,6 +696,7 @@
             executeAnimations(finalApps);
         }
 
+        /* 날아가는 태그에서 앱 이름을 표기하지 않음 */
         function flyFromImageToRight(itemName, targetRowEl) {
             return new Promise((resolve) => {
                 if (isTransitioning) return resolve(); 
@@ -745,11 +748,14 @@
             }, 150);
         }
 
+        /* 앱 이름 및 사용 시간 노출 제거, 탄소량만 바로 노출 */
         async function executeAnimations(finalApps) {
             document.getElementById('ocrStatus').classList.add('hidden');
             const listContainer = document.getElementById('extractionList');
             const mergeBomb = document.getElementById('mergeBomb');
             const bombText = document.getElementById('mergeCarbonText');
+            const carEquivalentText = document.getElementById('carEquivalent');
+            const carStandardText = document.getElementById('carStandardText');
             
             let totalCarbon = 0; let currentBombScale = 1.0; 
             mergeBomb.classList.remove('opacity-0', 'scale-50');
@@ -762,16 +768,19 @@
                 rowEl.className = "flex flex-col text-[10px] bg-white p-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] opacity-0";
                 let icon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📦';
                 
+                // 앱 이름 대신 익명화된 탄소 항목 명칭 사용
+                const displayName = isOther ? "기타 탄소 배출" : `탄소 배출 항목 ${i+1}`;
+                
                 if (!isOther) {
-                    rowEl.innerHTML = `<div class="text-[#191F28] font-semibold mb-0.5 truncate">${icon} ${item.name}</div>
+                    rowEl.innerHTML = `<div class="text-[#191F28] font-semibold mb-0.5 truncate">${icon} ${displayName}</div>
                         <div class="flex items-center gap-1 font-semibold"><span class="carbon-val text-[#3182F6] opacity-0 transition-opacity duration-300">${carbonVal.toFixed(1)}g</span></div>`;
                 } else {
-                    rowEl.innerHTML = `<div class="text-[#8B95A1] font-semibold mb-0.5 truncate">${icon} ${item.name}</div>
+                    rowEl.innerHTML = `<div class="text-[#8B95A1] font-semibold mb-0.5 truncate">${icon} ${displayName}</div>
                         <div class="flex items-center gap-1 font-semibold"><span class="calc-text text-[#8B95A1]">계산중...</span><span class="carbon-val text-[#3182F6] hidden">${carbonVal.toFixed(1)}g</span></div>`;
                 }
                 listContainer.appendChild(rowEl);
 
-                await flyFromImageToRight(item.name, rowEl);
+                await flyFromImageToRight(displayName, rowEl);
                 if (isTransitioning) return;
                 rowEl.classList.remove('opacity-0');
                 await delay(100); 
@@ -785,6 +794,9 @@
                     if (isTransitioning) return;
                     totalCarbon += carbonVal; 
                     bombText.innerText = totalCarbon.toFixed(1);
+                    carEquivalentText.innerText = `🚗 자동차 ${(totalCarbon / 130).toFixed(2)}km 동급`; 
+                    carEquivalentText.classList.remove('opacity-0');
+                    carStandardText.classList.remove('opacity-0'); 
                     
                     currentBombScale += 0.25; 
                     applyJellyEffectAndGrow(mergeBomb, currentBombScale); 
@@ -802,6 +814,9 @@
                     
                     totalCarbon += carbonVal; 
                     bombText.innerText = totalCarbon.toFixed(1);
+                    carEquivalentText.innerText = `🚗 자동차 ${(totalCarbon / 130).toFixed(2)}km 동급`;
+                    carEquivalentText.classList.remove('opacity-0');
+                    carStandardText.classList.remove('opacity-0'); 
                     
                     currentBombScale += 0.35; 
                     applyJellyEffectAndGrow(mergeBomb, currentBombScale); 
@@ -846,6 +861,8 @@
             
             imgElement.style.opacity = '0'; 
             document.getElementById('bombNameLabel').style.opacity = '0';
+            document.getElementById('carEquivalent').style.opacity = '0'; 
+            document.getElementById('carStandardText').style.opacity = '0'; 
             
             clone.offsetWidth;
             clone.style.left = '50%'; clone.style.top = '50%';
