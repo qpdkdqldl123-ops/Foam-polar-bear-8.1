@@ -1,0 +1,19 @@
+# 환경 변수 파일 (API 키 업로드 방지 - 매우 중요!)
+.env
+.env.*
+!.env.example
+
+# Python 관련 (Python 프로젝트인 경우)
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Node.js 관련 (JavaScript/TypeScript 프로젝트인 경우)
+node_modules/
+npm-debug.log*
+
+# 에디터 및 OS 설정 파일
+.vscode/
+.idea/
+.DS_Store
